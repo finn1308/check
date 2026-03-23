@@ -2,85 +2,57 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AR Siêu Tốc - Fix Lỗi Lệch Hình</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>AR Siêu Tốc - Fix Camera</title>
   
-  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+  <!-- Sử dụng phiên bản ổn định -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
   <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background-color: #000;
-    }
+    body { margin: 0; overflow: hidden; font-family: sans-serif; background-color: #000; }
 
     #start-overlay {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: radial-gradient(circle, #1a1a1a, #000);
-      z-index: 10000;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      text-align: center;
-      cursor: pointer;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle, #222, #000);
+      z-index: 9999; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; color: white; text-align: center;
     }
 
     #start-btn {
-      padding: 20px 70px;
-      font-size: 22px;
-      background: #e91e63;
-      border: none;
-      border-radius: 50px;
-      color: white;
-      font-weight: bold;
-      box-shadow: 0 10px 40px rgba(233, 30, 99, 0.5);
-      margin-top: 25px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
+      padding: 15px 50px; font-size: 18px; background: #e91e63;
+      border: none; border-radius: 30px; color: white; font-weight: bold;
+      cursor: pointer; margin-top: 20px; text-transform: uppercase;
+      box-shadow: 0 4px 15px rgba(233, 30, 99, 0.4);
     }
 
     #scanning-status {
-      position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.85);
-      color: #fff;
-      padding: 12px 35px;
-      border-radius: 40px;
-      font-size: 14px;
-      z-index: 100;
-      border: 1px solid rgba(233, 30, 99, 0.3);
-      backdrop-filter: blur(15px);
-      display: none;
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7); color: #fff; padding: 10px 25px;
+      border-radius: 20px; font-size: 14px; z-index: 100; display: none;
+      border: 1px solid #e91e63; backdrop-filter: blur(5px);
+    }
+
+    #error-msg {
+      color: #ff5252; margin-top: 15px; font-size: 14px; padding: 0 20px;
     }
   </style>
 </head>
 <body>
 
   <div id="start-overlay">
-    <div style="font-size: 28px; font-weight: bold; color: #e91e63;">TRẢI NGHIỆM AR</div>
-    <p style="margin: 15px 0; color: #888; max-width: 80%;">Hướng camera vào ảnh để xem video tương ứng</p>
-    <button id="start-btn">Bắt đầu ngay</button>
+    <h2 style="color: #e91e63;">TRẢI NGHIỆM AR</h2>
+    <p style="opacity: 0.8; max-width: 280px;">Vui lòng cấp quyền Camera khi được hỏi để bắt đầu quét ảnh.</p>
+    <button id="start-btn">Cho phép & Bắt đầu</button>
+    <div id="error-msg"></div>
   </div>
 
   <div id="scanning-status">Đang quét tìm hình ảnh...</div>
 
-  <!-- 
-    ĐIỀU CHỈNH CHỐNG RUNG CÂN BẰNG:
-    - filterMinCF: 0.001 (Tăng nhẹ để video bám sát ảnh hơn, giảm độ trễ)
-    - filterBeta: 10 (Giảm để tránh hiệu ứng video "đuổi theo" ảnh quá chậm)
-    - warmupTolerance: 7 (Đợi nhận diện ổn định trong 7 khung hình mới hiện video)
-  -->
   <a-scene 
-    mindar-image="imageTargetSrc: targets.mind; autoStart: false; uiLoading: no; uiScanning: no; maxTrack: 1; filterMinCF: 0.001; filterBeta: 10; warmupTolerance: 7; missTolerance: 10;" 
+    mindar-image="imageTargetSrc: targets.mind; autoStart: false; uiLoading: no; uiScanning: no; filterMinCF: 0.001; filterBeta: 10;" 
     color-space="sRGB" 
-    renderer="colorManagement: true, antialias: true, precision: high, logarithmicDepthBuffer: true;" 
+    renderer="colorManagement: true, antialias: true, precision: high;" 
     vr-mode-ui="enabled: false" 
     device-orientation-permission-ui="enabled: false">
     
@@ -89,17 +61,15 @@
              src="video.mp4" 
              crossorigin="anonymous" 
              loop="true" 
-             autoplay="false"
              muted="true"
              playsinline 
              webkit-playsinline>
       </video>
     </a-assets>
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="far: 10000; objects: .clickable"></a-camera>
 
     <a-entity id="targets-container"></a-entity>
-    
   </a-scene>
 
   <script>
@@ -109,63 +79,74 @@
     const container = document.querySelector('#targets-container');
     const statusLabel = document.querySelector("#scanning-status");
     const startOverlay = document.querySelector("#start-overlay");
+    const errorMsg = document.querySelector("#error-msg");
 
-    const fragment = document.createDocumentFragment();
+    // Tạo các Target Entity
     for (let i = 0; i < TOTAL_IMAGES; i++) {
       const targetEntity = document.createElement('a-entity');
       targetEntity.setAttribute('mindar-image-target', `targetIndex: ${i}`);
       
       const videoPlane = document.createElement('a-video');
       videoPlane.setAttribute('src', '#ar-video');
-      
-      /* QUAN TRỌNG: Không ép cứng chiều cao quá nhiều. 
-         Chúng ta sử dụng width=1 làm chuẩn, height sẽ tự thích ứng theo tỷ lệ ảnh mục tiêu 
-         được định nghĩa trong file .mind
-      */
       videoPlane.setAttribute('width', '1');
-      videoPlane.setAttribute('height', '1.45'); // Tỉ lệ xấp xỉ Portrait
+      videoPlane.setAttribute('height', '1.45'); 
       videoPlane.setAttribute('position', '0 0 0.01'); 
       
       targetEntity.appendChild(videoPlane);
 
       targetEntity.addEventListener("targetFound", () => {
         statusLabel.innerText = "Đã nhận diện: Ảnh " + (i + 1);
-        statusLabel.style.borderColor = "#e91e63";
-        
-        videoEl.muted = false;
-        videoEl.play().catch(() => {
-          videoEl.muted = true;
-          videoEl.play();
-        });
+        videoEl.muted = false; // Thử mở tiếng khi tìm thấy
+        videoEl.play();
       });
 
       targetEntity.addEventListener("targetLost", () => {
         videoEl.pause();
         statusLabel.innerText = "Đang tìm hình ảnh...";
-        statusLabel.style.borderColor = "rgba(233, 30, 99, 0.3)";
       });
 
-      fragment.appendChild(targetEntity);
+      container.appendChild(targetEntity);
     }
-    container.appendChild(fragment);
 
-    startOverlay.addEventListener("click", () => {
-      startOverlay.style.opacity = "0";
-      setTimeout(() => { startOverlay.style.display = "none"; }, 400);
-      statusLabel.style.display = "block";
+    // Xử lý nút bắt đầu
+    document.querySelector("#start-btn").addEventListener("click", async () => {
+      errorMsg.innerText = "Đang khởi tạo camera...";
       
-      sceneEl.systems["mindar-image-system"].start();
-      
-      videoEl.load();
-      videoEl.play().then(() => {
-        videoEl.pause();
-        videoEl.currentTime = 0;
-      });
+      try {
+        // Kiểm tra HTTPS
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+          throw new Error("AR yêu cầu kết nối bảo mật HTTPS để mở Camera.");
+        }
+
+        // Bước 1: Yêu cầu quyền camera thủ công để chắc chắn
+        await navigator.mediaDevices.getUserMedia({ video: true });
+
+        // Bước 2: Khởi động MindAR
+        startOverlay.style.display = "none";
+        statusLabel.style.display = "block";
+        
+        const arSystem = sceneEl.systems["mindar-image-system"];
+        arSystem.start();
+
+        // Bước 3: Kích hoạt video (cần sự kiện click để trình duyệt cho phép play)
+        videoEl.load();
+        videoEl.play().then(() => {
+            videoEl.pause(); // Tạm dừng, sẽ play khi thấy target
+        });
+
+      } catch (err) {
+        console.error(err);
+        errorMsg.innerText = "Lỗi: " + err.message;
+        if (err.name === 'NotAllowedError') {
+          errorMsg.innerText = "Bạn đã chặn quyền truy cập Camera. Vui lòng vào cài đặt trình duyệt để cho phép.";
+        }
+      }
     });
 
-    sceneEl.addEventListener("arError", () => {
+    // Lắng nghe lỗi hệ thống AR
+    sceneEl.addEventListener("arError", (event) => {
       statusLabel.innerText = "Lỗi khởi tạo AR!";
-      statusLabel.style.background = "#d32f2f";
+      console.log("AR Error:", event);
     });
   </script>
 </body>
