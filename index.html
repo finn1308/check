@@ -10,9 +10,9 @@
       margin: 0;
       padding: 0;
       overflow: hidden;
-      background-color: black;
+      background-color: #050010;
       font-family: 'Poppins', sans-serif;
-      touch-action: none; /* Ngăn chặn các thao tác chạm mặc định gây lag */
+      touch-action: none;
     }
 
     #canvas {
@@ -25,10 +25,9 @@
       position: absolute;
       left: 10px;
       bottom: 20px;
-      width: 80px;
+      width: 70px;
       z-index: 10;
       pointer-events: none;
-      user-select: none;
     }
 
     /* CSS cho Pop-up */
@@ -38,26 +37,26 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(11, 1, 24, 0.85);
+      background: rgba(5, 0, 15, 0.9);
       display: none;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 1000;
       opacity: 0;
-      transition: opacity 0.8s ease;
-      backdrop-filter: blur(8px);
+      transition: opacity 0.6s ease;
+      backdrop-filter: blur(10px);
     }
 
     .login-box {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
       padding: 2rem;
-      border-radius: 20px;
-      border: 1px solid rgba(255, 77, 109, 0.3);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 77, 109, 0.4);
       text-align: center;
-      box-shadow: 0 0 30px rgba(255, 77, 109, 0.2);
+      box-shadow: 0 0 40px rgba(255, 77, 109, 0.2);
       width: 85%;
-      max-width: 350px;
+      max-width: 320px;
       color: white;
     }
 
@@ -65,39 +64,40 @@
       font-family: 'Pacifico', cursive;
       color: #ff4d6d;
       margin-bottom: 1rem;
-      font-size: 1.8rem;
+      font-size: 1.6rem;
     }
 
     .login-box input {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       margin-bottom: 1.2rem;
-      border-radius: 10px;
+      border-radius: 12px;
       border: 1px solid #ff4d6d;
-      background: rgba(0,0,0,0.4);
+      background: rgba(0,0,0,0.5);
       color: white;
       font-size: 1rem;
       outline: none;
       box-sizing: border-box;
+      text-align: center;
     }
 
     .login-box button {
       background: #ff4d6d;
       color: white;
       border: none;
-      padding: 12px;
-      border-radius: 25px;
+      padding: 14px;
+      border-radius: 30px;
       font-weight: 600;
       cursor: pointer;
       width: 100%;
       font-size: 1rem;
-      transition: background 0.3s;
+      box-shadow: 0 4px 15px rgba(255, 77, 109, 0.3);
     }
 
     .error-msg {
       color: #ffb3c1;
       font-size: 0.8rem;
-      margin-top: 10px;
+      margin-top: 12px;
       display: none;
     }
 
@@ -115,23 +115,23 @@
   <div id="popupOverlay">
     <div class="login-box">
       <h2>Chào Công Chúa</h2>
-      <p style="margin-bottom: 15px; font-size: 0.85rem; opacity: 0.8;">Nhập mã lớp mình để nhận quà nhé!</p>
-      <input type="text" id="userNameInput" placeholder="Nhập mã lớp (Ví dụ: 12A4)" autocomplete="off">
+      <p style="margin-bottom: 15px; font-size: 0.85rem; opacity: 0.8;">Nhập mã lớp để nhận quà!</p>
+      <input type="text" id="userNameInput" placeholder="Ví dụ: 12A4" autocomplete="off">
       <button onclick="handleUnlock()">Mở Khóa</button>
-      <div id="errorMessage" class="error-msg">Mã không chính xác, thử lại nhé!</div>
+      <div id="errorMessage" class="error-msg">Mã không đúng rồi, thử lại nhé!</div>
     </div>
   </div>
 
   <script>
     const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d', { alpha: false }); // Tối ưu hóa render
+    const ctx = canvas.getContext('2d', { alpha: false });
     const stars = [];
     const explosions = [];
     const shootingStars = [];
-    const fullText = ["Chào Mừng đến với A4K41", "chúng tớ là học sinh 12A4"];
+    const fullText = ["Chào Mừng đến với A4K41", "12A4 luôn bên bạn"];
     
-    let fontSize = 40;
-    let lineHeight = 60;
+    let fontSize = 32;
+    let lineHeight = 50;
     const bearX = 50;
     let bearY = 0;
     let dots = [];
@@ -144,23 +144,22 @@
       canvas.height = window.innerHeight;
       bearY = canvas.height - 70;
 
-      // Điều chỉnh font size theo chiều rộng màn hình
-      fontSize = Math.min(canvas.width / 10, 60);
-      lineHeight = fontSize * 1.5;
+      // Tối ưu kích thước chữ cho điện thoại dọc
+      fontSize = Math.min(canvas.width / 12, 50);
+      lineHeight = fontSize * 1.6;
 
       stars.length = 0;
-      const starCount = canvas.width < 600 ? 150 : 300;
+      const starCount = canvas.width < 600 ? 100 : 250;
       for (let i = 0; i < starCount; i++) {
         stars.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          radius: Math.random() * 1.2 + 0.3,
+          radius: Math.random() * 1.1 + 0.2,
           alpha: Math.random(),
-          delta: (Math.random() * 0.01) + 0.005
+          delta: (Math.random() * 0.015) + 0.005
         });
       }
       
-      // Khởi động lại logic tọa độ chữ khi resize
       if (!animationDone) {
         generateAllTargetDots();
       }
@@ -169,14 +168,14 @@
     window.addEventListener('resize', resizeCanvas);
 
     function createExplosion(x, y) {
-      for (let i = 0; i < 15; i++) {
+      for (let i = 0; i < 12; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 4 + 1;
+        const speed = Math.random() * 5 + 2;
         explosions.push({
           x, y,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
-          life: 40,
+          life: 30,
           opacity: 1
         });
       }
@@ -195,20 +194,19 @@
       ctx.globalAlpha = 1;
     }
 
-    function createShootingStar() {
-      if (shootingStars.length > 2) return;
-      shootingStars.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * (canvas.height / 2),
-        length: Math.random() * 150 + 50,
-        speed: Math.random() * 8 + 4,
-        angle: Math.PI / 4,
-        opacity: 1
-      });
-    }
-
     function drawShootingStars() {
-      ctx.lineWidth = 1.5;
+      if (Math.random() < 0.01 && shootingStars.length < 2) {
+        shootingStars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * (canvas.height / 2),
+          length: Math.random() * 100 + 50,
+          speed: Math.random() * 10 + 5,
+          angle: Math.PI / 4,
+          opacity: 1
+        });
+      }
+
+      ctx.lineWidth = 1;
       for (let i = shootingStars.length - 1; i >= 0; i--) {
         const s = shootingStars[i];
         const endX = s.x - Math.cos(s.angle) * s.length;
@@ -220,7 +218,7 @@
         ctx.stroke();
         s.x += Math.cos(s.angle) * s.speed;
         s.y += Math.sin(s.angle) * s.speed;
-        s.opacity -= 0.02;
+        s.opacity -= 0.025;
         if (s.opacity <= 0) shootingStars.splice(i, 1);
       }
     }
@@ -230,14 +228,14 @@
       const tCtx = tempCanvas.getContext('2d');
       tempCanvas.width = canvas.width;
       tempCanvas.height = canvas.height;
-      tCtx.font = `bold ${fontSize}px Arial`;
-      tCtx.fillStyle = "red";
+      tCtx.font = `bold ${fontSize}px sans-serif`;
+      tCtx.fillStyle = "white";
       tCtx.textAlign = "left";
       tCtx.fillText(char, x, y);
       
       const imageData = tCtx.getImageData(0, 0, canvas.width, canvas.height).data;
       const charDots = [];
-      const step = canvas.width < 600 ? 6 : 4; // Mobile dùng bước nhảy lớn hơn để mượt
+      const step = canvas.width < 600 ? 8 : 5; // Bước nhảy lớn hơn cho điện thoại để mượt
       
       for (let py = 0; py < canvas.height; py += step) {
         for (let px = 0; px < canvas.width; px += step) {
@@ -251,7 +249,7 @@
 
     function generateAllTargetDots() {
       const tempCtx = document.createElement('canvas').getContext('2d');
-      tempCtx.font = `bold ${fontSize}px Arial`;
+      tempCtx.font = `bold ${fontSize}px sans-serif`;
       const lines = fullText;
       const totalHeight = lines.length * lineHeight;
       const startY = (canvas.height - totalHeight) / 2 + fontSize;
@@ -281,25 +279,23 @@
       const targetDots = targetDotsQueue[currentCharIndex];
       if (!targetDots || targetDots.length === 0) return;
 
-      const batch = canvas.width < 600 ? 5 : 10;
+      const batch = canvas.width < 600 ? 8 : 15;
       for (let i = 0; i < batch; i++) {
         const target = targetDots.shift();
         if (!target) break;
         dots.push({
           x: bearX + 40,
           y: bearY,
-          vx: (Math.random() - 0.5) * 5,
-          vy: -Math.random() * 5,
+          vx: (Math.random() - 0.5) * 8,
+          vy: -Math.random() * 10,
           targetX: target.x,
-          targetY: target.y,
-          size: Math.random() * 8 + 8
+          targetY: target.y
         });
       }
     }
 
     function animate() {
-      // Vẽ nền tối ưu
-      ctx.fillStyle = "#0a001f";
+      ctx.fillStyle = "#050010";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       drawStars();
@@ -308,15 +304,16 @@
       ctx.font = "14px Arial";
       ctx.textAlign = "center";
       
-      for (let i = dots.length - 1; i >= 0; i--) {
+      for (let i = 0; i < dots.length; i++) {
         const d = dots[i];
         const dx = d.targetX - d.x;
         const dy = d.targetY - d.y;
         
-        d.vx += dx * 0.004;
-        d.vy += dy * 0.004;
-        d.vx *= 0.9;
-        d.vy *= 0.9;
+        // Tăng lực hút để chữ hiện ra nhanh và mượt hơn
+        d.vx += dx * 0.008;
+        d.vy += dy * 0.008;
+        d.vx *= 0.85;
+        d.vy *= 0.85;
         d.x += d.vx;
         d.y += d.vy;
         
@@ -326,9 +323,9 @@
       for (let i = explosions.length - 1; i >= 0; i--) {
         const p = explosions[i];
         p.x += p.vx; p.y += p.vy;
-        p.opacity -= 0.02;
+        p.opacity -= 0.03;
         ctx.globalAlpha = Math.max(p.opacity, 0);
-        ctx.fillStyle = "white";
+        ctx.fillStyle = "#ff4d6d";
         ctx.beginPath();
         ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
         ctx.fill();
@@ -336,9 +333,9 @@
       }
       ctx.globalAlpha = 1;
 
-      // Kiểm tra hoàn tất
+      // Hiện popup khi tất cả hạt đã ổn định
       if (!animationDone && currentCharIndex >= targetDotsQueue.length && targetDotsQueue[targetDotsQueue.length-1]?.length === 0) {
-        const allSettled = dots.every(d => Math.abs(d.x - d.targetX) < 10 && Math.abs(d.y - d.targetY) < 10);
+        const allSettled = dots.every(d => Math.abs(d.x - d.targetX) < 15 && Math.abs(d.y - d.targetY) < 15);
         if (allSettled && dots.length > 0) showPopup();
       }
 
@@ -350,7 +347,7 @@
       document.getElementById("bear").src = "https://i.pinimg.com/originals/7e/f6/9c/7ef69cd0a6b0b78526c8ce983b3296fc.gif";
       const popup = document.getElementById("popupOverlay");
       popup.style.display = "flex";
-      setTimeout(() => popup.style.opacity = "1", 100);
+      setTimeout(() => popup.style.opacity = "1", 50);
     }
 
     const userDatabase = { "12A4": "project/index2.html" };
@@ -378,12 +375,14 @@
     window.onload = () => {
       resizeCanvas();
       generateAllTargetDots();
-      setInterval(shootDot, 30);
-      setInterval(createShootingStar, 3000);
+      setInterval(shootDot, 25);
       animate();
     };
 
-    canvas.addEventListener("click", (e) => createExplosion(e.clientX, e.clientY));
+    canvas.addEventListener("touchstart", (e) => {
+      if (e.touches[0]) createExplosion(e.touches[0].clientX, e.touches[0].clientY);
+    });
+    canvas.addEventListener("mousedown", (e) => createExplosion(e.clientX, e.clientY));
   </script>
 </body>
 </html>
