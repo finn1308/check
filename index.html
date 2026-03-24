@@ -1,388 +1,216 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>A4K41 - Chào Mừng</title>
+  <title>Trái Tim Từ Ảnh - Mở Khóa</title>
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background-color: #050010;
-      font-family: 'Poppins', sans-serif;
-      touch-action: none;
+    :root {
+      --primary-color: #ff4d6d;
+      --bg-color: #0b0118;
     }
 
-    #canvas {
-      display: block;
-      width: 100vw;
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: white;
+      font-family: 'Poppins', sans-serif;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       height: 100vh;
     }
 
-    #bear {
-      position: absolute;
-      left: 10px;
-      bottom: 20px;
-      width: 70px;
-      z-index: 10;
-      pointer-events: none;
-    }
-
-    /* CSS cho Pop-up */
-    #popupOverlay {
+    /* Background Stars */
+    .stars {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(5, 0, 15, 0.9);
-      display: none;
+      z-index: -1;
+      background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+    }
+
+    /* Login Overlay */
+    #loginOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(11, 1, 24, 0.9);
+      display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 1000;
-      opacity: 0;
-      transition: opacity 0.6s ease;
-      backdrop-filter: blur(10px);
+      transition: opacity 0.5s ease;
     }
 
     .login-box {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 2rem;
-      border-radius: 24px;
-      border: 1px solid rgba(255, 77, 109, 0.4);
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2.5rem;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 77, 109, 0.3);
       text-align: center;
-      box-shadow: 0 0 40px rgba(255, 77, 109, 0.2);
-      width: 85%;
-      max-width: 320px;
-      color: white;
+      box-shadow: 0 0 30px rgba(255, 77, 109, 0.2);
+      width: 90%;
+      max-width: 400px;
     }
 
-    .login-box h2 {
+    h2 {
       font-family: 'Pacifico', cursive;
-      color: #ff4d6d;
-      margin-bottom: 1rem;
-      font-size: 1.6rem;
+      color: var(--primary-color);
+      margin-bottom: 1.5rem;
+      font-size: 2rem;
     }
 
-    .login-box input {
+    input {
       width: 100%;
-      padding: 14px;
-      margin-bottom: 1.2rem;
-      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 1.5rem;
+      border-radius: 10px;
       border: 1px solid #ff4d6d;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.3);
       color: white;
       font-size: 1rem;
       outline: none;
       box-sizing: border-box;
-      text-align: center;
     }
 
-    .login-box button {
-      background: #ff4d6d;
+    button {
+      background: var(--primary-color);
       color: white;
       border: none;
-      padding: 14px;
-      border-radius: 30px;
+      padding: 12px 30px;
+      border-radius: 25px;
       font-weight: 600;
       cursor: pointer;
+      transition: transform 0.3s, background 0.3s;
       width: 100%;
-      font-size: 1rem;
-      box-shadow: 0 4px 15px rgba(255, 77, 109, 0.3);
+      font-size: 1.1rem;
+    }
+
+    button:hover {
+      background: #ff758f;
+      transform: scale(1.05);
     }
 
     .error-msg {
       color: #ffb3c1;
-      font-size: 0.8rem;
-      margin-top: 12px;
+      font-size: 0.85rem;
+      margin-top: 10px;
       display: none;
     }
 
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-8px); }
-      75% { transform: translateX(8px); }
+    /* Heart & Original Elements (Hidden until login if needed) */
+    .container {
+      display: none; /* Hiện sau khi mở khóa nếu không chuyển trang */
+      width: 100%;
+      height: 100%;
     }
   </style>
 </head>
 <body>
-  <canvas id="canvas"></canvas>
-  <img id="bear" src="https://i.pinimg.com/originals/e5/c5/4c/e5c54cd43fd75a7ec5b7cf0f65838ec3.gif" alt="Bear" />
+  <div class="stars" id="starField"></div>
 
-  <div id="popupOverlay">
+  <!-- Màn hình khóa -->
+  <div id="loginOverlay">
     <div class="login-box">
       <h2>Chào Công Chúa</h2>
-      <p style="margin-bottom: 15px; font-size: 0.85rem; opacity: 0.8;">Nhập mã lớp để nhận quà!</p>
-      <input type="text" id="userNameInput" placeholder="Ví dụ: 12A4" autocomplete="off">
+      <p style="margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8;">Nhập đầy đủ họ tên để nhận quà nhé!</p>
+      <input type="text" id="userNameInput" placeholder="Ví dụ: Nguyễn Thị A" autocomplete="off">
       <button onclick="handleUnlock()">Mở Khóa</button>
-      <div id="errorMessage" class="error-msg">Mã không đúng rồi, thử lại nhé!</div>
+      <div id="errorMessage" class="error-msg">Tên này không có trong danh sách quà tặng rồi...</div>
     </div>
   </div>
 
+  <div class="container" id="heartContainer"></div>
+  <div id="messageContainer"></div>
+
   <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d', { alpha: false });
-    const stars = [];
-    const explosions = [];
-    const shootingStars = [];
-    const fullText = ["Chào Mừng đến với A4K41", "12A4 luôn bên bạn"];
-    
-    let fontSize = 32;
-    let lineHeight = 50;
-    const bearX = 50;
-    let bearY = 0;
-    let dots = [];
-    let targetDotsQueue = [];
-    let currentCharIndex = 0;
-    let animationDone = false;
-
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      bearY = canvas.height - 70;
-
-      // Tối ưu kích thước chữ cho điện thoại dọc
-      fontSize = Math.min(canvas.width / 12, 50);
-      lineHeight = fontSize * 1.6;
-
-      stars.length = 0;
-      const starCount = canvas.width < 600 ? 100 : 250;
-      for (let i = 0; i < starCount; i++) {
-        stars.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          radius: Math.random() * 1.1 + 0.2,
-          alpha: Math.random(),
-          delta: (Math.random() * 0.015) + 0.005
-        });
-      }
+    // Danh sách 28 tên và link tương ứng
+    const userDatabase = {
+      "12A4": "project/index2.html",
       
-      if (!animationDone) {
-        generateAllTargetDots();
-      }
-    }
-
-    window.addEventListener('resize', resizeCanvas);
-
-    function createExplosion(x, y) {
-      for (let i = 0; i < 12; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 5 + 2;
-        explosions.push({
-          x, y,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          life: 30,
-          opacity: 1
-        });
-      }
-    }
-
-    function drawStars() {
-      ctx.fillStyle = "white";
-      for (let star of stars) {
-        star.alpha += star.delta;
-        if (star.alpha >= 1 || star.alpha <= 0) star.delta = -star.delta;
-        ctx.globalAlpha = Math.max(0, star.alpha);
-        ctx.beginPath();
-        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-    }
-
-    function drawShootingStars() {
-      if (Math.random() < 0.01 && shootingStars.length < 2) {
-        shootingStars.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * (canvas.height / 2),
-          length: Math.random() * 100 + 50,
-          speed: Math.random() * 10 + 5,
-          angle: Math.PI / 4,
-          opacity: 1
-        });
-      }
-
-      ctx.lineWidth = 1;
-      for (let i = shootingStars.length - 1; i >= 0; i--) {
-        const s = shootingStars[i];
-        const endX = s.x - Math.cos(s.angle) * s.length;
-        const endY = s.y - Math.sin(s.angle) * s.length;
-        ctx.strokeStyle = `rgba(255, 255, 255, ${s.opacity})`;
-        ctx.beginPath();
-        ctx.moveTo(s.x, s.y);
-        ctx.lineTo(endX, endY);
-        ctx.stroke();
-        s.x += Math.cos(s.angle) * s.speed;
-        s.y += Math.sin(s.angle) * s.speed;
-        s.opacity -= 0.025;
-        if (s.opacity <= 0) shootingStars.splice(i, 1);
-      }
-    }
-
-    function generateCharDots(char, x, y) {
-      const tempCanvas = document.createElement('canvas');
-      const tCtx = tempCanvas.getContext('2d');
-      tempCanvas.width = canvas.width;
-      tempCanvas.height = canvas.height;
-      tCtx.font = `bold ${fontSize}px sans-serif`;
-      tCtx.fillStyle = "white";
-      tCtx.textAlign = "left";
-      tCtx.fillText(char, x, y);
-      
-      const imageData = tCtx.getImageData(0, 0, canvas.width, canvas.height).data;
-      const charDots = [];
-      const step = canvas.width < 600 ? 8 : 5; // Bước nhảy lớn hơn cho điện thoại để mượt
-      
-      for (let py = 0; py < canvas.height; py += step) {
-        for (let px = 0; px < canvas.width; px += step) {
-          if (imageData[(py * canvas.width + px) * 4 + 3] > 128) {
-            charDots.push({ x: px, y: py });
-          }
-        }
-      }
-      return charDots;
-    }
-
-    function generateAllTargetDots() {
-      const tempCtx = document.createElement('canvas').getContext('2d');
-      tempCtx.font = `bold ${fontSize}px sans-serif`;
-      const lines = fullText;
-      const totalHeight = lines.length * lineHeight;
-      const startY = (canvas.height - totalHeight) / 2 + fontSize;
-      
-      targetDotsQueue = [];
-      lines.forEach((line, lineIndex) => {
-        const lineWidth = tempCtx.measureText(line).width;
-        let xCursor = (canvas.width - lineWidth) / 2;
-        const y = startY + lineIndex * lineHeight;
-        for (let char of line) {
-          if (char === " ") {
-            xCursor += tempCtx.measureText(" ").width;
-            targetDotsQueue.push([]);
-            continue;
-          }
-          targetDotsQueue.push(generateCharDots(char, xCursor, y));
-          xCursor += tempCtx.measureText(char).width;
-        }
-      });
-    }
-
-    function shootDot() {
-      if (animationDone) return;
-      while (currentCharIndex < targetDotsQueue.length && targetDotsQueue[currentCharIndex].length === 0) {
-        currentCharIndex++;
-      }
-      const targetDots = targetDotsQueue[currentCharIndex];
-      if (!targetDots || targetDots.length === 0) return;
-
-      const batch = canvas.width < 600 ? 8 : 15;
-      for (let i = 0; i < batch; i++) {
-        const target = targetDots.shift();
-        if (!target) break;
-        dots.push({
-          x: bearX + 40,
-          y: bearY,
-          vx: (Math.random() - 0.5) * 8,
-          vy: -Math.random() * 10,
-          targetX: target.x,
-          targetY: target.y
-        });
-      }
-    }
-
-    function animate() {
-      ctx.fillStyle = "#050010";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      drawStars();
-      drawShootingStars();
-
-      ctx.font = "14px Arial";
-      ctx.textAlign = "center";
-      
-      for (let i = 0; i < dots.length; i++) {
-        const d = dots[i];
-        const dx = d.targetX - d.x;
-        const dy = d.targetY - d.y;
-        
-        // Tăng lực hút để chữ hiện ra nhanh và mượt hơn
-        d.vx += dx * 0.008;
-        d.vy += dy * 0.008;
-        d.vx *= 0.85;
-        d.vy *= 0.85;
-        d.x += d.vx;
-        d.y += d.vy;
-        
-        ctx.fillText("❤️", d.x, d.y);
-      }
-
-      for (let i = explosions.length - 1; i >= 0; i--) {
-        const p = explosions[i];
-        p.x += p.vx; p.y += p.vy;
-        p.opacity -= 0.03;
-        ctx.globalAlpha = Math.max(p.opacity, 0);
-        ctx.fillStyle = "#ff4d6d";
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
-        ctx.fill();
-        if (p.opacity <= 0) explosions.splice(i, 1);
-      }
-      ctx.globalAlpha = 1;
-
-      // Hiện popup khi tất cả hạt đã ổn định
-      if (!animationDone && currentCharIndex >= targetDotsQueue.length && targetDotsQueue[targetDotsQueue.length-1]?.length === 0) {
-        const allSettled = dots.every(d => Math.abs(d.x - d.targetX) < 15 && Math.abs(d.y - d.targetY) < 15);
-        if (allSettled && dots.length > 0) showPopup();
-      }
-
-      requestAnimationFrame(animate);
-    }
-
-    function showPopup() {
-      animationDone = true;
-      document.getElementById("bear").src = "https://i.pinimg.com/originals/7e/f6/9c/7ef69cd0a6b0b78526c8ce983b3296fc.gif";
-      const popup = document.getElementById("popupOverlay");
-      popup.style.display = "flex";
-      setTimeout(() => popup.style.opacity = "1", 50);
-    }
-
-    const userDatabase = { "12A4": "project/index2.html" };
+    };
 
     function handleUnlock() {
-      const input = document.getElementById('userNameInput').value.trim().toUpperCase();
+      const inputName = document.getElementById('userNameInput').value.trim();
       const errorDiv = document.getElementById('errorMessage');
-      
-      if (userDatabase[input]) {
+
+      // Tìm kiếm không phân biệt hoa thường và khoảng trắng thừa
+      const foundName = Object.keys(userDatabase).find(
+        key => key.toLowerCase() === inputName.toLowerCase()
+      );
+
+      if (foundName) {
         errorDiv.style.display = 'none';
-        document.getElementById('popupOverlay').style.opacity = '0';
-        setTimeout(() => window.location.href = userDatabase[input], 500);
+        // Thêm hiệu ứng mờ dần trước khi chuyển trang
+        document.getElementById('loginOverlay').style.opacity = '0';
+        
+        setTimeout(() => {
+          window.location.href = userDatabase[foundName];
+        }, 500);
       } else {
         errorDiv.style.display = 'block';
+        // Hiệu ứng rung nhẹ khi sai
         const box = document.querySelector('.login-box');
         box.style.animation = 'shake 0.3s ease-in-out';
         setTimeout(() => box.style.animation = '', 300);
       }
     }
 
-    document.getElementById('userNameInput').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') handleUnlock();
+    // Cho phép bấm Enter để mở khóa
+    document.getElementById('userNameInput').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        handleUnlock();
+      }
     });
 
-    window.onload = () => {
-      resizeCanvas();
-      generateAllTargetDots();
-      setInterval(shootDot, 25);
-      animate();
-    };
+    // Tạo hiệu ứng sao nền
+    function createStars() {
+      const starField = document.getElementById('starField');
+      for (let i = 0; i < 150; i++) {
+        const star = document.createElement('div');
+        star.style.position = 'absolute';
+        star.style.width = Math.random() * 3 + 'px';
+        star.style.height = star.style.width;
+        star.style.background = 'white';
+        star.style.borderRadius = '50%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.opacity = Math.random();
+        star.style.animation = `twinkle ${Math.random() * 3 + 2}s infinite`;
+        starField.appendChild(star);
+      }
+    }
 
-    canvas.addEventListener("touchstart", (e) => {
-      if (e.touches[0]) createExplosion(e.touches[0].clientX, e.touches[0].clientY);
-    });
-    canvas.addEventListener("mousedown", (e) => createExplosion(e.clientX, e.clientY));
+    // CSS cho hiệu ứng rung và lấp lánh
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = `
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+      }
+      @keyframes twinkle {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 1; }
+      }
+    `;
+    document.head.appendChild(styleSheet);
+
+    window.onload = createStars;
   </script>
 </body>
 </html>
+
+
+
+
