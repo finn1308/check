@@ -6,51 +6,32 @@
   <title>A4K41 - Chào Mừng</title>
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    /* CSS gốc từ style.css */
     body, html {
       margin: 0;
       padding: 0;
       overflow: hidden;
       background-color: black;
       font-family: 'Poppins', sans-serif;
+      touch-action: none; /* Ngăn chặn các thao tác chạm mặc định gây lag */
     }
 
     #canvas {
       display: block;
+      width: 100vw;
+      height: 100vh;
     }
 
     #bear {
       position: absolute;
       left: 10px;
-      bottom: 50px;
-      width: 110px;
+      bottom: 20px;
+      width: 80px;
       z-index: 10;
-      transition: filter 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+      user-select: none;
     }
 
-    #bear:hover {
-      transform: scale(1.2);
-      cursor: pointer;
-    }
-
-    #rotateNotice .overlay {
-      position: fixed;
-      z-index: 9999;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.95);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      text-align: center;
-      padding: 20px;
-    }
-
-    /* CSS cho Pop-up (từ index (1).html) */
+    /* CSS cho Pop-up */
     #popupOverlay {
       position: fixed;
       top: 0;
@@ -58,43 +39,42 @@
       width: 100%;
       height: 100%;
       background: rgba(11, 1, 24, 0.85);
-      display: none; /* Ẩn mặc định */
+      display: none;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 1000;
       opacity: 0;
       transition: opacity 0.8s ease;
-      backdrop-filter: blur(5px);
+      backdrop-filter: blur(8px);
     }
 
     .login-box {
       background: rgba(255, 255, 255, 0.1);
-      padding: 2.5rem;
+      padding: 2rem;
       border-radius: 20px;
-      backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 77, 109, 0.3);
       text-align: center;
       box-shadow: 0 0 30px rgba(255, 77, 109, 0.2);
-      width: 90%;
-      max-width: 400px;
+      width: 85%;
+      max-width: 350px;
       color: white;
     }
 
     .login-box h2 {
       font-family: 'Pacifico', cursive;
       color: #ff4d6d;
-      margin-bottom: 1.5rem;
-      font-size: 2rem;
+      margin-bottom: 1rem;
+      font-size: 1.8rem;
     }
 
     .login-box input {
       width: 100%;
       padding: 12px;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.2rem;
       border-radius: 10px;
       border: 1px solid #ff4d6d;
-      background: rgba(0,0,0,0.3);
+      background: rgba(0,0,0,0.4);
       color: white;
       font-size: 1rem;
       outline: none;
@@ -105,72 +85,55 @@
       background: #ff4d6d;
       color: white;
       border: none;
-      padding: 12px 30px;
+      padding: 12px;
       border-radius: 25px;
       font-weight: 600;
       cursor: pointer;
-      transition: transform 0.3s, background 0.3s;
       width: 100%;
-      font-size: 1.1rem;
-    }
-
-    .login-box button:hover {
-      background: #ff758f;
-      transform: scale(1.05);
+      font-size: 1rem;
+      transition: background 0.3s;
     }
 
     .error-msg {
       color: #ffb3c1;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       margin-top: 10px;
       display: none;
     }
 
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-10px); }
-      75% { transform: translateX(10px); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
     }
   </style>
 </head>
 <body>
-  <!-- Canvas chính -->
   <canvas id="canvas"></canvas>
-
-  <!-- Thông báo xoay màn hình -->
-  <div id="rotateNotice" style="display:none;">
-    <div class="overlay">
-      <p>Vui lòng xoay màn hình sang ngang để có trải nghiệm tốt nhất 🌟</p>
-    </div>
-  </div>
-
-  <!-- Ảnh chú gấu -->
   <img id="bear" src="https://i.pinimg.com/originals/e5/c5/4c/e5c54cd43fd75a7ec5b7cf0f65838ec3.gif" alt="Bear" />
 
-  <!-- Pop-up xuất hiện sau khi chữ chạy xong -->
   <div id="popupOverlay">
     <div class="login-box">
       <h2>Chào Công Chúa</h2>
-      <p style="margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8;">Nhập đầy đủ họ tên để nhận quà nhé!</p>
-      <input type="text" id="userNameInput" placeholder="Ví dụ: 12A4" autocomplete="off">
+      <p style="margin-bottom: 15px; font-size: 0.85rem; opacity: 0.8;">Nhập mã lớp mình để nhận quà nhé!</p>
+      <input type="text" id="userNameInput" placeholder="Nhập mã lớp (Ví dụ: 12A4)" autocomplete="off">
       <button onclick="handleUnlock()">Mở Khóa</button>
-      <div id="errorMessage" class="error-msg">Tên này không có trong danh sách quà tặng rồi...</div>
+      <div id="errorMessage" class="error-msg">Mã không chính xác, thử lại nhé!</div>
     </div>
   </div>
 
   <script>
-    // --- PHẦN LOGIC TỪ script.js ---
     const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false }); // Tối ưu hóa render
     const stars = [];
     const explosions = [];
     const shootingStars = [];
     const fullText = ["Chào Mừng đến với A4K41", "chúng tớ là học sinh 12A4"];
-    const fontSize = 70; // Giảm nhẹ font size để fit mobile tốt hơn
-    const fontFamily = "Arial";
-    const lineHeight = 100;
-    const bearX = 70;
-    let bearY = canvas.height - 80;
+    
+    let fontSize = 40;
+    let lineHeight = 60;
+    const bearX = 50;
+    let bearY = 0;
     let dots = [];
     let targetDotsQueue = [];
     let currentCharIndex = 0;
@@ -179,117 +142,108 @@
     function resizeCanvas() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      bearY = canvas.height - 80;
+      bearY = canvas.height - 70;
+
+      // Điều chỉnh font size theo chiều rộng màn hình
+      fontSize = Math.min(canvas.width / 10, 60);
+      lineHeight = fontSize * 1.5;
 
       stars.length = 0;
-      for (let i = 0; i < 300; i++) {
+      const starCount = canvas.width < 600 ? 150 : 300;
+      for (let i = 0; i < starCount; i++) {
         stars.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          radius: Math.random() * 1.5 + 0.5,
+          radius: Math.random() * 1.2 + 0.3,
           alpha: Math.random(),
-          delta: (Math.random() * 0.02) + 0.005
+          delta: (Math.random() * 0.01) + 0.005
         });
       }
-      checkOrientation();
-    }
-
-    function checkOrientation() {
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      const isPortrait = window.innerHeight > window.innerWidth;
-      const notice = document.getElementById("rotateNotice");
       
-      if (isMobile && isPortrait) {
-        notice.style.display = "block";
-        canvas.style.display = "none";
-        document.getElementById("bear").style.display = "none";
-      } else {
-        notice.style.display = "none";
-        canvas.style.display = "block";
-        document.getElementById("bear").style.display = "block";
+      // Khởi động lại logic tọa độ chữ khi resize
+      if (!animationDone) {
+        generateAllTargetDots();
       }
     }
 
     window.addEventListener('resize', resizeCanvas);
 
     function createExplosion(x, y) {
-      const count = 20;
-      for (let i = 0; i < count; i++) {
+      for (let i = 0; i < 15; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 6 + 2;
+        const speed = Math.random() * 4 + 1;
         explosions.push({
           x, y,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
-          life: 60,
+          life: 40,
           opacity: 1
         });
       }
     }
 
     function drawStars() {
+      ctx.fillStyle = "white";
       for (let star of stars) {
         star.alpha += star.delta;
         if (star.alpha >= 1 || star.alpha <= 0) star.delta = -star.delta;
-        ctx.save();
-        ctx.globalAlpha = star.alpha;
-        ctx.fillStyle = "white";
+        ctx.globalAlpha = Math.max(0, star.alpha);
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
         ctx.fill();
-        ctx.restore();
       }
+      ctx.globalAlpha = 1;
     }
 
     function createShootingStar() {
-      const startX = Math.random() * canvas.width;
-      const startY = Math.random() * (canvas.height / 2);
+      if (shootingStars.length > 2) return;
       shootingStars.push({
-        x: startX,
-        y: startY,
-        length: Math.random() * 300 + 100,
-        speed: Math.random() * 10 + 6,
+        x: Math.random() * canvas.width,
+        y: Math.random() * (canvas.height / 2),
+        length: Math.random() * 150 + 50,
+        speed: Math.random() * 8 + 4,
         angle: Math.PI / 4,
         opacity: 1
       });
     }
 
     function drawShootingStars() {
+      ctx.lineWidth = 1.5;
       for (let i = shootingStars.length - 1; i >= 0; i--) {
         const s = shootingStars[i];
         const endX = s.x - Math.cos(s.angle) * s.length;
         const endY = s.y - Math.sin(s.angle) * s.length;
-        const gradient = ctx.createLinearGradient(s.x, s.y, endX, endY);
-        gradient.addColorStop(0, `rgba(255, 255, 255, ${s.opacity})`);
-        gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
-        ctx.strokeStyle = gradient;
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = `rgba(255, 255, 255, ${s.opacity})`;
         ctx.beginPath();
         ctx.moveTo(s.x, s.y);
         ctx.lineTo(endX, endY);
         ctx.stroke();
         s.x += Math.cos(s.angle) * s.speed;
         s.y += Math.sin(s.angle) * s.speed;
-        s.opacity -= 0.01;
+        s.opacity -= 0.02;
         if (s.opacity <= 0) shootingStars.splice(i, 1);
       }
     }
 
     function generateCharDots(char, x, y) {
       const tempCanvas = document.createElement('canvas');
+      const tCtx = tempCanvas.getContext('2d');
       tempCanvas.width = canvas.width;
       tempCanvas.height = canvas.height;
-      const tempCtx = tempCanvas.getContext('2d');
-      tempCtx.font = `bold ${fontSize}px ${fontFamily}`;
-      tempCtx.fillStyle = "red";
-      tempCtx.textAlign = "left";
-      tempCtx.fillText(char, x, y);
-      const imageData = tempCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+      tCtx.font = `bold ${fontSize}px Arial`;
+      tCtx.fillStyle = "red";
+      tCtx.textAlign = "left";
+      tCtx.fillText(char, x, y);
+      
+      const imageData = tCtx.getImageData(0, 0, canvas.width, canvas.height).data;
       const charDots = [];
-      for (let py = 0; py < canvas.height; py += 5) { // Tăng step lên 5 để mượt hơn
-        for (let px = 0; px < canvas.width; px += 5) {
-          const index = (py * canvas.width + px) * 4;
-          if (imageData[index + 3] > 128) charDots.push({ x: px, y: py });
+      const step = canvas.width < 600 ? 6 : 4; // Mobile dùng bước nhảy lớn hơn để mượt
+      
+      for (let py = 0; py < canvas.height; py += step) {
+        for (let px = 0; px < canvas.width; px += step) {
+          if (imageData[(py * canvas.width + px) * 4 + 3] > 128) {
+            charDots.push({ x: px, y: py });
+          }
         }
       }
       return charDots;
@@ -297,11 +251,12 @@
 
     function generateAllTargetDots() {
       const tempCtx = document.createElement('canvas').getContext('2d');
-      tempCtx.font = `bold ${fontSize}px ${fontFamily}`;
+      tempCtx.font = `bold ${fontSize}px Arial`;
       const lines = fullText;
-      const startY = (canvas.height - lines.length * lineHeight) / 2;
+      const totalHeight = lines.length * lineHeight;
+      const startY = (canvas.height - totalHeight) / 2 + fontSize;
+      
       targetDotsQueue = [];
-
       lines.forEach((line, lineIndex) => {
         const lineWidth = tempCtx.measureText(line).width;
         let xCursor = (canvas.width - lineWidth) / 2;
@@ -312,8 +267,7 @@
             targetDotsQueue.push([]);
             continue;
           }
-          const charDots = generateCharDots(char, xCursor, y);
-          targetDotsQueue.push(charDots);
+          targetDotsQueue.push(generateCharDots(char, xCursor, y));
           xCursor += tempCtx.measureText(char).width;
         }
       });
@@ -327,71 +281,65 @@
       const targetDots = targetDotsQueue[currentCharIndex];
       if (!targetDots || targetDots.length === 0) return;
 
-      const batch = 8;
+      const batch = canvas.width < 600 ? 5 : 10;
       for (let i = 0; i < batch; i++) {
         const target = targetDots.shift();
         if (!target) break;
-        const angle = Math.random() * Math.PI / 6 - Math.PI / 12;
-        const speed = 3 + Math.random() * 2;
         dots.push({
           x: bearX + 40,
-          y: bearY - 20,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
+          y: bearY,
+          vx: (Math.random() - 0.5) * 5,
+          vy: -Math.random() * 5,
           targetX: target.x,
-          targetY: target.y
+          targetY: target.y,
+          size: Math.random() * 8 + 8
         });
-      }
-      if (targetDots.length === 0 && currentCharIndex < targetDotsQueue.length - 1) {
-        currentCharIndex++;
       }
     }
 
     function animate() {
-      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      gradient.addColorStop(0, "#0a001f");
-      gradient.addColorStop(1, "#1a0033");
-      ctx.fillStyle = gradient;
+      // Vẽ nền tối ưu
+      ctx.fillStyle = "#0a001f";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       drawStars();
       drawShootingStars();
 
-      dots.forEach(dot => {
-        const dx = dot.targetX - dot.x;
-        const dy = dot.targetY - dot.y;
-        dot.vx += dx * 0.003;
-        dot.vy += dy * 0.003;
-        dot.vx *= 0.92;
-        dot.vy *= 0.88;
-        dot.x += dot.vx;
-        dot.y += dot.vy;
-        ctx.font = "14px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText("❤️", dot.x, dot.y);
-      });
+      ctx.font = "14px Arial";
+      ctx.textAlign = "center";
+      
+      for (let i = dots.length - 1; i >= 0; i--) {
+        const d = dots[i];
+        const dx = d.targetX - d.x;
+        const dy = d.targetY - d.y;
+        
+        d.vx += dx * 0.004;
+        d.vy += dy * 0.004;
+        d.vx *= 0.9;
+        d.vy *= 0.9;
+        d.x += d.vx;
+        d.y += d.vy;
+        
+        ctx.fillText("❤️", d.x, d.y);
+      }
 
       for (let i = explosions.length - 1; i >= 0; i--) {
         const p = explosions[i];
         p.x += p.vx; p.y += p.vy;
-        p.vx *= 0.96; p.vy *= 0.96;
-        p.life--; p.opacity -= 0.015;
+        p.opacity -= 0.02;
         ctx.globalAlpha = Math.max(p.opacity, 0);
         ctx.fillStyle = "white";
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
         ctx.fill();
-        ctx.globalAlpha = 1;
-        if (p.life <= 0 || p.opacity <= 0) explosions.splice(i, 1);
+        if (p.opacity <= 0) explosions.splice(i, 1);
       }
+      ctx.globalAlpha = 1;
 
-      // KIỂM TRA HOÀN TẤT VÀ HIỆN POP-UP
+      // Kiểm tra hoàn tất
       if (!animationDone && currentCharIndex >= targetDotsQueue.length && targetDotsQueue[targetDotsQueue.length-1]?.length === 0) {
-        // Kiểm tra xem tất cả các hạt đã về vị trí chưa
-        const allSettled = dots.every(d => Math.abs(d.x - d.targetX) < 5 && Math.abs(d.y - d.targetY) < 5);
-        if(allSettled && dots.length > 0) {
-           showPopup();
-        }
+        const allSettled = dots.every(d => Math.abs(d.x - d.targetX) < 10 && Math.abs(d.y - d.targetY) < 10);
+        if (allSettled && dots.length > 0) showPopup();
       }
 
       requestAnimationFrame(animate);
@@ -399,35 +347,22 @@
 
     function showPopup() {
       animationDone = true;
-      const bear = document.getElementById("bear");
-      bear.src = "https://i.pinimg.com/originals/7e/f6/9c/7ef69cd0a6b0b78526c8ce983b3296fc.gif";
-      
+      document.getElementById("bear").src = "https://i.pinimg.com/originals/7e/f6/9c/7ef69cd0a6b0b78526c8ce983b3296fc.gif";
       const popup = document.getElementById("popupOverlay");
       popup.style.display = "flex";
-      setTimeout(() => {
-        popup.style.opacity = "1";
-      }, 100);
+      setTimeout(() => popup.style.opacity = "1", 100);
     }
 
-    // --- PHẦN LOGIC TỪ index (1).html (CHẾ ĐỘ MỞ KHÓA) ---
-    const userDatabase = {
-      "12A4": "project/index2.html", // Mã mở khóa mẫu
-    };
+    const userDatabase = { "12A4": "project/index2.html" };
 
     function handleUnlock() {
-      const inputName = document.getElementById('userNameInput').value.trim();
+      const input = document.getElementById('userNameInput').value.trim().toUpperCase();
       const errorDiv = document.getElementById('errorMessage');
-      const foundName = Object.keys(userDatabase).find(
-        key => key.toLowerCase() === inputName.toLowerCase()
-      );
-
-      if (foundName) {
+      
+      if (userDatabase[input]) {
         errorDiv.style.display = 'none';
         document.getElementById('popupOverlay').style.opacity = '0';
-        setTimeout(() => {
-          // Thực hiện chuyển hướng đến trang quà tặng
-          window.location.href = userDatabase[foundName];
-        }, 500);
+        setTimeout(() => window.location.href = userDatabase[input], 500);
       } else {
         errorDiv.style.display = 'block';
         const box = document.querySelector('.login-box');
@@ -436,23 +371,19 @@
       }
     }
 
-    document.getElementById('userNameInput').addEventListener('keypress', function (e) {
+    document.getElementById('userNameInput').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') handleUnlock();
     });
 
-    // Khởi tạo
     window.onload = () => {
       resizeCanvas();
       generateAllTargetDots();
-      setInterval(shootDot, 40);
-      setInterval(createShootingStar, 2000);
+      setInterval(shootDot, 30);
+      setInterval(createShootingStar, 3000);
       animate();
     };
 
     canvas.addEventListener("click", (e) => createExplosion(e.clientX, e.clientY));
-    canvas.addEventListener("touchstart", (e) => {
-      if (e.touches[0]) createExplosion(e.touches[0].clientX, e.touches[0].clientY);
-    });
   </script>
 </body>
 </html>
