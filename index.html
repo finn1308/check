@@ -1,54 +1,71 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trái Tim Từ Ảnh - Mở Khóa</title>
+  <title>A4K41 - Chào Mừng</title>
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --primary-color: #ff4d6d;
-      --bg-color: #0b0118;
-    }
-
-    body {
+    /* CSS gốc từ style.css */
+    body, html {
       margin: 0;
       padding: 0;
-      background-color: var(--bg-color);
-      color: white;
-      font-family: 'Poppins', sans-serif;
       overflow: hidden;
+      background-color: black;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    #canvas {
+      display: block;
+    }
+
+    #bear {
+      position: absolute;
+      left: 10px;
+      bottom: 50px;
+      width: 110px;
+      z-index: 10;
+      transition: filter 0.2s ease, transform 0.2s ease;
+    }
+
+    #bear:hover {
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+
+    #rotateNotice .overlay {
+      position: fixed;
+      z-index: 9999;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      color: white;
       display: flex;
-      justify-content: center;
       align-items: center;
-      height: 100vh;
+      justify-content: center;
+      font-size: 22px;
+      text-align: center;
+      padding: 20px;
     }
 
-    /* Background Stars */
-    .stars {
+    /* CSS cho Pop-up (từ index (1).html) */
+    #popupOverlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: -1;
-      background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
-    }
-
-    /* Login Overlay */
-    #loginOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(11, 1, 24, 0.9);
-      display: flex;
+      background: rgba(11, 1, 24, 0.85);
+      display: none; /* Ẩn mặc định */
       flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 1000;
-      transition: opacity 0.5s ease;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+      backdrop-filter: blur(5px);
     }
 
     .login-box {
@@ -61,16 +78,17 @@
       box-shadow: 0 0 30px rgba(255, 77, 109, 0.2);
       width: 90%;
       max-width: 400px;
+      color: white;
     }
 
-    h2 {
+    .login-box h2 {
       font-family: 'Pacifico', cursive;
-      color: var(--primary-color);
+      color: #ff4d6d;
       margin-bottom: 1.5rem;
       font-size: 2rem;
     }
 
-    input {
+    .login-box input {
       width: 100%;
       padding: 12px;
       margin-bottom: 1.5rem;
@@ -83,8 +101,8 @@
       box-sizing: border-box;
     }
 
-    button {
-      background: var(--primary-color);
+    .login-box button {
+      background: #ff4d6d;
       color: white;
       border: none;
       padding: 12px 30px;
@@ -96,7 +114,7 @@
       font-size: 1.1rem;
     }
 
-    button:hover {
+    .login-box button:hover {
       background: #ff758f;
       transform: scale(1.05);
     }
@@ -108,109 +126,333 @@
       display: none;
     }
 
-    /* Heart & Original Elements (Hidden until login if needed) */
-    .container {
-      display: none; /* Hiện sau khi mở khóa nếu không chuyển trang */
-      width: 100%;
-      height: 100%;
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
     }
   </style>
 </head>
 <body>
-  <div class="stars" id="starField"></div>
+  <!-- Canvas chính -->
+  <canvas id="canvas"></canvas>
 
-  <!-- Màn hình khóa -->
-  <div id="loginOverlay">
+  <!-- Thông báo xoay màn hình -->
+  <div id="rotateNotice" style="display:none;">
+    <div class="overlay">
+      <p>Vui lòng xoay màn hình sang ngang để có trải nghiệm tốt nhất 🌟</p>
+    </div>
+  </div>
+
+  <!-- Ảnh chú gấu -->
+  <img id="bear" src="https://i.pinimg.com/originals/e5/c5/4c/e5c54cd43fd75a7ec5b7cf0f65838ec3.gif" alt="Bear" />
+
+  <!-- Pop-up xuất hiện sau khi chữ chạy xong -->
+  <div id="popupOverlay">
     <div class="login-box">
       <h2>Chào Công Chúa</h2>
       <p style="margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8;">Nhập đầy đủ họ tên để nhận quà nhé!</p>
-      <input type="text" id="userNameInput" placeholder="Ví dụ: Nguyễn Thị A" autocomplete="off">
+      <input type="text" id="userNameInput" placeholder="Ví dụ: 12A4" autocomplete="off">
       <button onclick="handleUnlock()">Mở Khóa</button>
       <div id="errorMessage" class="error-msg">Tên này không có trong danh sách quà tặng rồi...</div>
     </div>
   </div>
 
-  <div class="container" id="heartContainer"></div>
-  <div id="messageContainer"></div>
-
   <script>
-    // Danh sách 28 tên và link tương ứng
-    const userDatabase = {
-      "12A4": "project/index2.html",
+    // --- PHẦN LOGIC TỪ script.js ---
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const stars = [];
+    const explosions = [];
+    const shootingStars = [];
+    const fullText = ["Chào Mừng đến với A4K41", "chúng tớ là học sinh 12A4"];
+    const fontSize = 70; // Giảm nhẹ font size để fit mobile tốt hơn
+    const fontFamily = "Arial";
+    const lineHeight = 100;
+    const bearX = 70;
+    let bearY = canvas.height - 80;
+    let dots = [];
+    let targetDotsQueue = [];
+    let currentCharIndex = 0;
+    let animationDone = false;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      bearY = canvas.height - 80;
+
+      stars.length = 0;
+      for (let i = 0; i < 300; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 1.5 + 0.5,
+          alpha: Math.random(),
+          delta: (Math.random() * 0.02) + 0.005
+        });
+      }
+      checkOrientation();
+    }
+
+    function checkOrientation() {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const isPortrait = window.innerHeight > window.innerWidth;
+      const notice = document.getElementById("rotateNotice");
       
+      if (isMobile && isPortrait) {
+        notice.style.display = "block";
+        canvas.style.display = "none";
+        document.getElementById("bear").style.display = "none";
+      } else {
+        notice.style.display = "none";
+        canvas.style.display = "block";
+        document.getElementById("bear").style.display = "block";
+      }
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    function createExplosion(x, y) {
+      const count = 20;
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 6 + 2;
+        explosions.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 60,
+          opacity: 1
+        });
+      }
+    }
+
+    function drawStars() {
+      for (let star of stars) {
+        star.alpha += star.delta;
+        if (star.alpha >= 1 || star.alpha <= 0) star.delta = -star.delta;
+        ctx.save();
+        ctx.globalAlpha = star.alpha;
+        ctx.fillStyle = "white";
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function createShootingStar() {
+      const startX = Math.random() * canvas.width;
+      const startY = Math.random() * (canvas.height / 2);
+      shootingStars.push({
+        x: startX,
+        y: startY,
+        length: Math.random() * 300 + 100,
+        speed: Math.random() * 10 + 6,
+        angle: Math.PI / 4,
+        opacity: 1
+      });
+    }
+
+    function drawShootingStars() {
+      for (let i = shootingStars.length - 1; i >= 0; i--) {
+        const s = shootingStars[i];
+        const endX = s.x - Math.cos(s.angle) * s.length;
+        const endY = s.y - Math.sin(s.angle) * s.length;
+        const gradient = ctx.createLinearGradient(s.x, s.y, endX, endY);
+        gradient.addColorStop(0, `rgba(255, 255, 255, ${s.opacity})`);
+        gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        s.x += Math.cos(s.angle) * s.speed;
+        s.y += Math.sin(s.angle) * s.speed;
+        s.opacity -= 0.01;
+        if (s.opacity <= 0) shootingStars.splice(i, 1);
+      }
+    }
+
+    function generateCharDots(char, x, y) {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.font = `bold ${fontSize}px ${fontFamily}`;
+      tempCtx.fillStyle = "red";
+      tempCtx.textAlign = "left";
+      tempCtx.fillText(char, x, y);
+      const imageData = tempCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+      const charDots = [];
+      for (let py = 0; py < canvas.height; py += 5) { // Tăng step lên 5 để mượt hơn
+        for (let px = 0; px < canvas.width; px += 5) {
+          const index = (py * canvas.width + px) * 4;
+          if (imageData[index + 3] > 128) charDots.push({ x: px, y: py });
+        }
+      }
+      return charDots;
+    }
+
+    function generateAllTargetDots() {
+      const tempCtx = document.createElement('canvas').getContext('2d');
+      tempCtx.font = `bold ${fontSize}px ${fontFamily}`;
+      const lines = fullText;
+      const startY = (canvas.height - lines.length * lineHeight) / 2;
+      targetDotsQueue = [];
+
+      lines.forEach((line, lineIndex) => {
+        const lineWidth = tempCtx.measureText(line).width;
+        let xCursor = (canvas.width - lineWidth) / 2;
+        const y = startY + lineIndex * lineHeight;
+        for (let char of line) {
+          if (char === " ") {
+            xCursor += tempCtx.measureText(" ").width;
+            targetDotsQueue.push([]);
+            continue;
+          }
+          const charDots = generateCharDots(char, xCursor, y);
+          targetDotsQueue.push(charDots);
+          xCursor += tempCtx.measureText(char).width;
+        }
+      });
+    }
+
+    function shootDot() {
+      if (animationDone) return;
+      while (currentCharIndex < targetDotsQueue.length && targetDotsQueue[currentCharIndex].length === 0) {
+        currentCharIndex++;
+      }
+      const targetDots = targetDotsQueue[currentCharIndex];
+      if (!targetDots || targetDots.length === 0) return;
+
+      const batch = 8;
+      for (let i = 0; i < batch; i++) {
+        const target = targetDots.shift();
+        if (!target) break;
+        const angle = Math.random() * Math.PI / 6 - Math.PI / 12;
+        const speed = 3 + Math.random() * 2;
+        dots.push({
+          x: bearX + 40,
+          y: bearY - 20,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          targetX: target.x,
+          targetY: target.y
+        });
+      }
+      if (targetDots.length === 0 && currentCharIndex < targetDotsQueue.length - 1) {
+        currentCharIndex++;
+      }
+    }
+
+    function animate() {
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, "#0a001f");
+      gradient.addColorStop(1, "#1a0033");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      drawStars();
+      drawShootingStars();
+
+      dots.forEach(dot => {
+        const dx = dot.targetX - dot.x;
+        const dy = dot.targetY - dot.y;
+        dot.vx += dx * 0.003;
+        dot.vy += dy * 0.003;
+        dot.vx *= 0.92;
+        dot.vy *= 0.88;
+        dot.x += dot.vx;
+        dot.y += dot.vy;
+        ctx.font = "14px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("❤️", dot.x, dot.y);
+      });
+
+      for (let i = explosions.length - 1; i >= 0; i--) {
+        const p = explosions[i];
+        p.x += p.vx; p.y += p.vy;
+        p.vx *= 0.96; p.vy *= 0.96;
+        p.life--; p.opacity -= 0.015;
+        ctx.globalAlpha = Math.max(p.opacity, 0);
+        ctx.fillStyle = "white";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        if (p.life <= 0 || p.opacity <= 0) explosions.splice(i, 1);
+      }
+
+      // KIỂM TRA HOÀN TẤT VÀ HIỆN POP-UP
+      if (!animationDone && currentCharIndex >= targetDotsQueue.length && targetDotsQueue[targetDotsQueue.length-1]?.length === 0) {
+        // Kiểm tra xem tất cả các hạt đã về vị trí chưa
+        const allSettled = dots.every(d => Math.abs(d.x - d.targetX) < 5 && Math.abs(d.y - d.targetY) < 5);
+        if(allSettled && dots.length > 0) {
+           showPopup();
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function showPopup() {
+      animationDone = true;
+      const bear = document.getElementById("bear");
+      bear.src = "https://i.pinimg.com/originals/7e/f6/9c/7ef69cd0a6b0b78526c8ce983b3296fc.gif";
+      
+      const popup = document.getElementById("popupOverlay");
+      popup.style.display = "flex";
+      setTimeout(() => {
+        popup.style.opacity = "1";
+      }, 100);
+    }
+
+    // --- PHẦN LOGIC TỪ index (1).html (CHẾ ĐỘ MỞ KHÓA) ---
+    const userDatabase = {
+      "12A4": "project/index2.html", // Mã mở khóa mẫu
     };
 
     function handleUnlock() {
       const inputName = document.getElementById('userNameInput').value.trim();
       const errorDiv = document.getElementById('errorMessage');
-
-      // Tìm kiếm không phân biệt hoa thường và khoảng trắng thừa
       const foundName = Object.keys(userDatabase).find(
         key => key.toLowerCase() === inputName.toLowerCase()
       );
 
       if (foundName) {
         errorDiv.style.display = 'none';
-        // Thêm hiệu ứng mờ dần trước khi chuyển trang
-        document.getElementById('loginOverlay').style.opacity = '0';
-        
+        document.getElementById('popupOverlay').style.opacity = '0';
         setTimeout(() => {
+          // Thực hiện chuyển hướng đến trang quà tặng
           window.location.href = userDatabase[foundName];
         }, 500);
       } else {
         errorDiv.style.display = 'block';
-        // Hiệu ứng rung nhẹ khi sai
         const box = document.querySelector('.login-box');
         box.style.animation = 'shake 0.3s ease-in-out';
         setTimeout(() => box.style.animation = '', 300);
       }
     }
 
-    // Cho phép bấm Enter để mở khóa
     document.getElementById('userNameInput').addEventListener('keypress', function (e) {
-      if (e.key === 'Enter') {
-        handleUnlock();
-      }
+      if (e.key === 'Enter') handleUnlock();
     });
 
-    // Tạo hiệu ứng sao nền
-    function createStars() {
-      const starField = document.getElementById('starField');
-      for (let i = 0; i < 150; i++) {
-        const star = document.createElement('div');
-        star.style.position = 'absolute';
-        star.style.width = Math.random() * 3 + 'px';
-        star.style.height = star.style.width;
-        star.style.background = 'white';
-        star.style.borderRadius = '50%';
-        star.style.top = Math.random() * 100 + '%';
-        star.style.left = Math.random() * 100 + '%';
-        star.style.opacity = Math.random();
-        star.style.animation = `twinkle ${Math.random() * 3 + 2}s infinite`;
-        starField.appendChild(star);
-      }
-    }
+    // Khởi tạo
+    window.onload = () => {
+      resizeCanvas();
+      generateAllTargetDots();
+      setInterval(shootDot, 40);
+      setInterval(createShootingStar, 2000);
+      animate();
+    };
 
-    // CSS cho hiệu ứng rung và lấp lánh
-    const styleSheet = document.createElement("style");
-    styleSheet.innerText = `
-      @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-10px); }
-        75% { transform: translateX(10px); }
-      }
-      @keyframes twinkle {
-        0%, 100% { opacity: 0.3; }
-        50% { opacity: 1; }
-      }
-    `;
-    document.head.appendChild(styleSheet);
-
-    window.onload = createStars;
+    canvas.addEventListener("click", (e) => createExplosion(e.clientX, e.clientY));
+    canvas.addEventListener("touchstart", (e) => {
+      if (e.touches[0]) createExplosion(e.touches[0].clientX, e.touches[0].clientY);
+    });
   </script>
 </body>
 </html>
-
-
-
-
